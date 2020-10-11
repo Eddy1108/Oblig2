@@ -48,7 +48,7 @@ int main()
     {
         system("cls");
         gameState = 0;
-        std::vector<int> playerHand{};
+        std::vector<int> playerHand{};      //initialize player and house hands at the start to "restart" or "empthy" them.
         std::vector<int> houseHand{};
 
         std::cout << "-------- Welcome to Blackjack! -------- \n\tPress any Key to begin";
@@ -57,10 +57,11 @@ int main()
 
         while (true) {  //the game
             system("cls");
-            input = ' ';
+            input = ' ';        //reset the input so nothing loops
+            std::cout << "-----Player Turn-----\n";
             printHand(playerHand);
             std::cout << "\nTotal: " << calcHand(playerHand) << std::endl;
-            std::cout << "\n---Press D to draw--- \n---Press F to finish" << std::endl;
+            std::cout << "\n---Press D to draw \n---Press F to finish---" << std::endl;
 
             if (calcHand(playerHand) > 21) {
                 std::cout << "Your hand went over 21! You Lose!\n";
@@ -91,7 +92,9 @@ int main()
                 break;
             case 'f':
             case 'F':
-                gameState = 1; //switch to house turn
+                if (playerHand.size() != 0) {
+                    gameState = 1; //switch to house turn
+                }
                 break;
             }
         }
@@ -105,12 +108,30 @@ int main()
             std::cout << "\nHouse Total: " << calcHand(houseHand);
 
             if (calcHand(houseHand) > 21) {
-                std::cout << "\n\nThe house busts! You win!\n";
+                std::cout << "\n\nThe House busts! You win!\n";
                 system("pause");
                 break;
             }
 
-            std::chrono::milliseconds houseWait(3000);
+            if (calcHand(houseHand) == calcHand(playerHand))
+            {
+                std::cout << "\n\nIts a Match! Game Tied!\n";
+                system("pause");
+                break;
+            }
+
+            if (calcHand(houseHand) > calcHand(playerHand) && calcHand(houseHand) <= 21) //More than the player, less than 21
+            {
+                if (calcHand(houseHand) == 21) 
+                {
+                    std::cout << "\n\nBlackjack!";
+                }
+                std::cout << "\nThe House got higher cards! You Lose!\n";
+                system("pause");
+                break;
+            }
+
+            std::chrono::milliseconds houseWait(2500);
             std::this_thread::sleep_for(houseWait);         //wait a little, for added suspense
 
             valueTemp = drawCard();
@@ -132,3 +153,4 @@ int main()
 //Add tie condition
 //Clean code
 //Make functions
+//Add betting
