@@ -15,7 +15,9 @@ int gameState{ 0 };     //0 = playing, 1 = betting, 2 = houses turn, 3 = loss, 4
 
 int playerMoney{ 100 };
 int houseMoney{ 100 };
-int currentBet{ 0 };
+int playerBet{ 0 };
+int houseBet{ 0 };
+int currentPot{ 0 };
 
 
 int drawCard() 
@@ -50,15 +52,27 @@ int main()
     {
         system("cls");
         gameState = 0;
-        currentBet = 0;
+        playerBet = 0;
+        houseBet = 0;
         std::vector<int> playerHand{};      //initialize player and house hands at the start to "restart" or "empthy" them.
         std::vector<int> houseHand{};
 
-        std::cout << "-------- Welcome to Blackjack! -------- \n\t    Your Money: " << playerMoney << "$\n\t   House Money: " << houseMoney << "$\n   Press any Key to begin (Costs 10$)";
+        std::cout << "-------- Welcome to Blackjack! -------- \n\t    Your Money: $" << playerMoney << "\n\t   House Money: $" << houseMoney << "\n   Press any Key to begin (Costs 10$)";
         _getch();
 
+        if (houseMoney == 0) 
+        {
+            std::cout << "\n\nThe house is out of money, Leave!\n\n";
+            exit(0);
+        }
+        if (playerMoney < 10) 
+        {
+            std::cout << "\n\nYou can no longer afford the minimum fee, please leave.\n\n";
+            exit(0);
+        }
+
         playerMoney -= 10;
-        currentBet += 10;
+        playerBet += 10;
         while (true) {  //the game
             system("cls");
             input = ' ';        //reset the input so nothing loops
@@ -69,6 +83,7 @@ int main()
 
             if (calcHand(playerHand) > 21) {
                 std::cout << "Your hand went over 21! You Lose!\n";
+                houseMoney += playerBet;
                 gameState = 3;
                 system("pause");
                 break;
@@ -110,23 +125,52 @@ int main()
 
         while (gameState == 1)      //Betting
         {
+            system("cls");
             std::cout << "-----Betting-----\n";
-            std::cout << "Your money: " << playerMoney << "\nHow much would you like to bet? \n(The house will always match your bet if they can)";
+            std::cout << "Your money: $" << playerMoney << "\n" << "House Money: $" << houseMoney << "\nHow much would you like to bet? \n(The house will always match your bet if they can)";
+            std::cout << "\nBet: $";
             std::cin >> valueTemp;
-            if (valueTemp >= houseMoney)
-            gameState = 2;
+            if (valueTemp > playerMoney) 
+            {
+                std::cout << "\nYou do not have that much money...\n";
+                system("pause");
+            }
+            else if (valueTemp > houseMoney)
+            {
+                std::cout << "\nThe House cannot match your bet...\n";
+                system("pause");
+            }
+            else 
+            {
+                playerMoney -= valueTemp;
+                playerBet += valueTemp;
+
+                if (valueTemp == 0 && playerMoney == 0)         //The House is generous, if you can only afford the minimum fee and no bet, the house will match the fee.
+                {
+                    houseMoney -= 10;
+                    houseBet += 10;
+                }
+                else 
+                {
+                    houseMoney -= valueTemp;
+                    houseBet += valueTemp;
+                }
+                gameState = 2;
+            }
+            
         }
 
         //the House's turn:
         while (gameState == 2) {
             system("cls");
-            std::cout << "-----The Houses turn----- \nYour total: " << calcHand(playerHand) << "\n\nThe House will now draw...";
+            std::cout << "-----The Houses turn----- \nYour total: " << calcHand(playerHand) << "\nThe Pot: $" << (playerBet + houseBet) << "\n\nThe House will now draw...";
             std::cout << "\nHouse ";
             printHand(houseHand);
             std::cout << "\nHouse Total: " << calcHand(houseHand);
 
             if (calcHand(houseHand) > 21) 
             {
+                playerMoney += (playerBet + houseBet);
                 std::cout << "\n\nThe House busts! You win!\n";
                 system("pause");
                 break;
@@ -134,6 +178,8 @@ int main()
 
             if (calcHand(houseHand) == calcHand(playerHand))
             {
+                playerMoney += playerBet;
+                houseMoney += houseBet;
                 std::cout << "\n\nIts a Match! Game Tied!\n";
                 system("pause");
                 break;
@@ -145,12 +191,13 @@ int main()
                 {
                     std::cout << "\n\nBlackjack!";
                 }
+                houseMoney += (playerBet + houseBet);
                 std::cout << "\nThe House got higher cards! You Lose!\n";
                 system("pause");
                 break;
             }
 
-            std::chrono::milliseconds houseWait(2000);
+            std::chrono::milliseconds houseWait(1500);
             std::this_thread::sleep_for(houseWait);         //wait a little, for added suspense
 
             valueTemp = drawCard();
@@ -169,8 +216,5 @@ int main()
     }
 }
 
-
-//Add tie condition
 //Clean code
 //Make functions
-//Add betting
